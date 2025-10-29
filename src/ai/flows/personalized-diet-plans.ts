@@ -44,7 +44,7 @@ Height: {{{heightCm}}} cm
 Dietary Preferences: {{{dietaryPreferences}}}
 Goal: {{{goal}}}.
 
-Ensure the diet plan is safe, healthy, and effective for the user.`, 
+Ensure the diet plan is safe, healthy, and effective for the user.`,
 });
 
 const personalizedDietPlanFlow = ai.defineFlow(
@@ -54,7 +54,14 @@ const personalizedDietPlanFlow = ai.defineFlow(
     outputSchema: PersonalizedDietPlanOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
+    const {output} = await ai.generate({
+      model: 'gemini-1.5-flash',
+      prompt: prompt.compile(input),
+      output: {
+        format: 'json',
+        schema: PersonalizedDietPlanOutputSchema,
+      },
+    });
     return output!;
   }
 );

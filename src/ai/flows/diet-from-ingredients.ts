@@ -45,7 +45,14 @@ const dietFromIngredientsFlow = ai.defineFlow(
     outputSchema: DietFromIngredientsOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
+    const {output} = await ai.generate({
+      model: 'gemini-1.5-flash',
+      prompt: prompt.compile(input),
+      output: {
+        format: 'json',
+        schema: DietFromIngredientsOutputSchema,
+      },
+    });
     return output!;
   }
 );

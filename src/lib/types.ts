@@ -4,4 +4,6 @@ export interface Task {
   completed: boolean;
   duration: number; // in minutes
   streak: number;
+  beforeSnap: string | null;
+  afterSnap: string | null;
 }
