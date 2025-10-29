@@ -2,7 +2,11 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import WakeUpVerification from "./components/WakeUpVerification";
 import DailyTasks from "./components/DailyTasks";
 import StreakChart from "./components/StreakChart";
-import { Flame, Star, Zap } from "lucide-react";
+import { Flame, Star, Zap, Footprints } from "lucide-react";
+
+const totalPoints = 4520;
+const pointsPerRupee = 100;
+const redeemableValue = totalPoints / pointsPerRupee;
 
 export default function DashboardPage() {
   return (
@@ -25,11 +29,21 @@ export default function DashboardPage() {
               <Star className="w-4 h-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">4,520</div>
-              <p className="text-xs text-muted-foreground">Equivalent to ₹9,040</p>
+              <div className="text-2xl font-bold">{totalPoints.toLocaleString()}</div>
+              <p className="text-xs text-muted-foreground">₹{redeemableValue.toLocaleString('en-IN', { maximumFractionDigits: 2 })} redeemable</p>
             </CardContent>
           </Card>
           <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Distance Walked</CardTitle>
+              <Footprints className="w-4 h-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">3.4 km</div>
+              <p className="text-xs text-muted-foreground">Today's progress</p>
+            </CardContent>
+          </Card>
+           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Level</CardTitle>
               <Zap className="w-4 h-4 text-muted-foreground" />
@@ -37,15 +51,6 @@ export default function DashboardPage() {
             <CardContent>
               <div className="text-2xl font-bold">Beginner</div>
               <p className="text-xs text-muted-foreground">Next: Intermediate</p>
-            </CardContent>
-          </Card>
-          <Card className="sm:col-span-2 md:col-span-1 lg:col-span-2 xl:col-span-1">
-             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Redeemable</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">₹9,040</div>
-              <p className="text-xs text-muted-foreground">Ready to cash out</p>
             </CardContent>
           </Card>
         </div>

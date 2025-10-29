@@ -3,14 +3,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { IndianRupee, Star } from "lucide-react";
 
-const STREAK_TO_INR_RATE = 2;
+const POINTS_PER_RUPEE = 100;
 const currentStreaks = 4520;
-const currentInrValue = currentStreaks * STREAK_TO_INR_RATE;
+const currentInrValue = currentStreaks / POINTS_PER_RUPEE;
 
 const redemptionHistory = [
-  { id: 1, date: "2024-06-15", streaks: 1000, amount: "₹2,000", status: "Completed" },
-  { id: 2, date: "2024-05-20", streaks: 500, amount: "₹1,000", status: "Completed" },
-  { id: 3, date: "2024-04-10", streaks: 800, amount: "₹1,600", status: "Completed" },
+  { id: 1, date: "2024-06-15", streaks: 1000, amount: "₹10", status: "Completed" },
+  { id: 2, date: "2024-05-20", streaks: 500, amount: "₹5", status: "Completed" },
+  { id: 3, date: "2024-04-10", streaks: 800, amount: "₹8", status: "Completed" },
 ];
 
 export default function RewardsPage() {
@@ -38,13 +38,13 @@ export default function RewardsPage() {
             <div className="border rounded-lg p-4 flex flex-col items-center justify-center text-center">
               <div className="flex items-center gap-2">
                  <IndianRupee className="w-6 h-6 text-primary" />
-                 <span className="text-3xl font-bold">{currentInrValue.toLocaleString()}</span>
+                 <span className="text-3xl font-bold">{currentInrValue.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}</span>
               </div>
               <p className="text-muted-foreground">Redeemable Value</p>
             </div>
             <Button className="w-full" size="lg">Redeem Now</Button>
             <p className="text-xs text-muted-foreground text-center">
-              Note: 1 point = ₹{STREAK_TO_INR_RATE}. Minimum 500 points to redeem.
+              Note: {POINTS_PER_RUPEE} points = ₹1. Minimum 500 points to redeem.
             </p>
           </CardContent>
         </Card>
