@@ -26,38 +26,36 @@ export default function WakeUpVerification() {
   }, []);
 
   useEffect(() => {
-    let stream: MediaStream;
-    const getCameraPermission = async () => {
-      if (hasCameraPermission === null && !isVerified) {
-         try {
-          stream = await navigator.mediaDevices.getUserMedia({ video: true });
-          setHasCameraPermission(true);
+    if (isVerified) return;
 
-          if (videoRef.current) {
-            videoRef.current.srcObject = stream;
-          }
-        } catch (error) {
-          console.error('Error accessing camera:', error);
-          setHasCameraPermission(false);
-          toast({
-            variant: 'destructive',
-            title: 'Camera Access Denied',
-            description: 'Please enable camera permissions in your browser settings to use this feature.',
-          });
+    const getCameraPermission = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        setHasCameraPermission(true);
+
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
         }
+      } catch (error) {
+        console.error('Error accessing camera:', error);
+        setHasCameraPermission(false);
+        toast({
+          variant: 'destructive',
+          title: 'Camera Access Denied',
+          description: 'Please enable camera permissions in your browser settings to use this feature.',
+        });
       }
     };
 
     getCameraPermission();
    
     return () => {
-      // Cleanup: stop camera stream when component unmounts or is verified
       if (videoRef.current && videoRef.current.srcObject) {
         const stream = videoRef.current.srcObject as MediaStream;
         stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, [isVerified, hasCameraPermission, toast]);
+  }, [isVerified, toast]);
 
   const handleCapture = () => {
     if (videoRef.current && canvasRef.current) {
