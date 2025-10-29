@@ -39,10 +39,10 @@ const prompt = ai.definePrompt({
 
 Based on the user's weight, height, dietary preferences, and goal, create a detailed diet plan. Include macronutrient ratios, vitamin and mineral suggestions, and whether or not to adjust calories burned.
 
-Weight: {{weightKg}} kg
-Height: {{heightCm}} cm
-Dietary Preferences: {{dietaryPreferences}}
-Goal: {{goal}}.
+Weight: {{{weightKg}}} kg
+Height: {{{heightCm}}} cm
+Dietary Preferences: {{{dietaryPreferences}}}
+Goal: {{{goal}}}.
 
 Ensure the diet plan is safe, healthy, and effective for the user.`, 
 });

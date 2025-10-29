@@ -32,7 +32,7 @@ const prompt = ai.definePrompt({
   output: {schema: DietFromIngredientsOutputSchema},
   prompt: `You are a nutritionist. A user has the following ingredients and wants a diet plan.
 
-Ingredients: {{ingredients}}
+Ingredients: {{{ingredients}}}
 
 Create a healthy and balanced diet plan (breakfast, lunch, dinner, snacks) for one day using mainly these ingredients.
 Also, suggest a small shopping list of complementary items if needed.`,
