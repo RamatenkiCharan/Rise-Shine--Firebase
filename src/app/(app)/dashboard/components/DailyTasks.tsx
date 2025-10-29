@@ -19,42 +19,46 @@ const initialTasks: Task[] = [
   { id: 'task-3', title: '10-minute Meditation', completed: false, duration: 10, streak: 4, beforeSnap: null, afterSnap: null },
 ];
 
-function TaskVerificationCamera({ onCapture, task, snapType }: { onCapture: (taskId: string, snapType: 'beforeSnap' | 'afterSnap', dataUrl: string) => void; task: Task; snapType: 'beforeSnap' | 'afterSnap' }) {
+function TaskVerificationCamera({ onCapture, task, snapType, open, onOpenChange }: { onCapture: (taskId: string, snapType: 'beforeSnap' | 'afterSnap', dataUrl: string) => void; task: Task; snapType: 'beforeSnap' | 'afterSnap', open: boolean; onOpenChange: (open: boolean) => void; }) {
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
-  const [isClient, setIsClient] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    setIsClient(true);
+    let stream: MediaStream | null = null;
     const getCameraPermission = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        setHasCameraPermission(true);
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
+      if (open) {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ video: true });
+          setHasCameraPermission(true);
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+          }
+        } catch (error) {
+          console.error('Error accessing camera:', error);
+          setHasCameraPermission(false);
+          toast({
+            variant: 'destructive',
+            title: 'Camera Access Denied',
+            description: 'Please enable camera permissions in your browser settings.',
+          });
         }
-      } catch (error) {
-        console.error('Error accessing camera:', error);
-        setHasCameraPermission(false);
-        toast({
-          variant: 'destructive',
-          title: 'Camera Access Denied',
-          description: 'Please enable camera permissions in your browser settings.',
-        });
       }
     };
+
     getCameraPermission();
 
     return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
+      if (stream) {
         stream.getTracks().forEach(track => track.stop());
       }
+       if (!open) {
+        setCapturedImage(null);
+      }
     };
-  }, [toast]);
+  }, [open, toast]);
 
   const handleCapture = () => {
     if (videoRef.current && canvasRef.current) {
@@ -76,6 +80,7 @@ function TaskVerificationCamera({ onCapture, task, snapType }: { onCapture: (tas
   const handleConfirm = () => {
     if (capturedImage) {
       onCapture(task.id, snapType, capturedImage);
+      onOpenChange(false);
     }
   };
 
@@ -89,7 +94,7 @@ function TaskVerificationCamera({ onCapture, task, snapType }: { onCapture: (tas
           <Image src={capturedImage} alt="Captured snap" fill className="object-cover" />
         ) : (
           <>
-            {isClient && <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />}
+            <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
             {hasCameraPermission === false && (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white p-4 text-center">
                 <Camera className="h-10 w-10 mb-2" />
@@ -113,9 +118,7 @@ function TaskVerificationCamera({ onCapture, task, snapType }: { onCapture: (tas
         {capturedImage ? (
           <>
             <Button variant="outline" onClick={handleRetake}><RefreshCw className="mr-2 h-4 w-4" />Retake</Button>
-            <DialogClose asChild>
-              <Button onClick={handleConfirm}><Check className="mr-2 h-4 w-4" />Confirm</Button>
-            </DialogClose>
+            <Button onClick={handleConfirm}><Check className="mr-2 h-4 w-4" />Confirm</Button>
           </>
         ) : (
           <Button onClick={handleCapture} disabled={!hasCameraPermission}>
@@ -132,6 +135,11 @@ export default function DailyTasks() {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [aiTasks, setAiTasks] = useState<string[]>([]);
   const { toast } = useToast();
+  const [dialogState, setDialogState] = useState<{ [key: string]: boolean }>({});
+
+  const handleDialogOpenChange = (key: string, open: boolean) => {
+    setDialogState(prev => ({...prev, [key]: open}));
+  }
 
   useEffect(() => {
     async function fetchAiTasks() {
@@ -179,7 +187,10 @@ export default function DailyTasks() {
           <p className="text-sm text-muted-foreground mt-2">{completedTasksCount} of {tasks.length} tasks completed</p>
         </div>
         <div className="space-y-3">
-          {tasks.map((task) => (
+          {tasks.map((task) => {
+            const beforeSnapKey = `${task.id}-before`;
+            const afterSnapKey = `${task.id}-after`;
+            return (
             <div
               key={task.id}
               className={cn(
@@ -203,29 +214,41 @@ export default function DailyTasks() {
                   {task.title}
                 </p>
                 <div className="flex items-center gap-2 mt-2">
-                  <Dialog>
+                  <Dialog open={dialogState[beforeSnapKey]} onOpenChange={(open) => handleDialogOpenChange(beforeSnapKey, open)}>
                     <DialogTrigger asChild>
                       <Button variant={task.beforeSnap ? 'secondary' : 'outline'} size="sm" disabled={task.completed}>
                         {task.beforeSnap ? <Check className="mr-2 h-4 w-4" /> : <Camera className="mr-2 h-4 w-4" />}
                         Before
                       </Button>
                     </DialogTrigger>
-                    <TaskVerificationCamera onCapture={handleSnapCapture} task={task} snapType="beforeSnap" />
+                    <TaskVerificationCamera 
+                      onCapture={handleSnapCapture} 
+                      task={task} 
+                      snapType="beforeSnap" 
+                      open={dialogState[beforeSnapKey]}
+                      onOpenChange={(open) => handleDialogOpenChange(beforeSnapKey, open)}
+                    />
                   </Dialog>
 
-                  <Dialog>
+                  <Dialog open={dialogState[afterSnapKey]} onOpenChange={(open) => handleDialogOpenChange(afterSnapKey, open)}>
                     <DialogTrigger asChild>
                       <Button variant={task.afterSnap ? 'secondary' : 'outline'} size="sm" disabled={!task.beforeSnap || task.completed}>
                          {task.afterSnap ? <Check className="mr-2 h-4 w-4" /> : <Camera className="mr-2 h-4 w-4" />}
                         After
                       </Button>
                     </DialogTrigger>
-                    <TaskVerificationCamera onCapture={handleSnapCapture} task={task} snapType="afterSnap" />
+                    <TaskVerificationCamera 
+                      onCapture={handleSnapCapture} 
+                      task={task} 
+                      snapType="afterSnap"
+                      open={dialogState[afterSnapKey]}
+                      onOpenChange={(open) => handleDialogOpenChange(afterSnapKey, open)}
+                    />
                   </Dialog>
                 </div>
               </div>
             </div>
-          ))}
+          )})}
         </div>
         
         {aiTasks.length > 0 && (
