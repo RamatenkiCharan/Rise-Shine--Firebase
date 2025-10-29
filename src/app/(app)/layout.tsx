@@ -1,7 +1,8 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   Apple,
   Award,
@@ -11,6 +12,7 @@ import {
   PanelLeft,
   Settings,
   User,
+  Loader2,
 } from 'lucide-react';
 
 import {
@@ -31,6 +33,7 @@ import { Button } from '@/components/ui/button';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
+import { useUser, useAuth } from '@/firebase';
 
 const navItems = [
   { href: '/dashboard', icon: Home, label: 'Dashboard' },
@@ -41,7 +44,29 @@ const navItems = [
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const auth = useAuth();
+  const { user, isUserLoading } = useUser();
   const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push('/');
+    }
+  }, [user, isUserLoading, router]);
+
+  const handleLogout = () => {
+    auth.signOut();
+    router.push('/');
+  };
+
+  if (isUserLoading || !user) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
@@ -73,11 +98,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="mt-auto p-4 border-t">
               <div className="flex items-center gap-3">
                  <Avatar className="h-9 w-9">
-                  {userAvatar && <AvatarImage src={userAvatar.imageUrl} alt="User Avatar" />}
-                  <AvatarFallback>U</AvatarFallback>
+                  {user?.photoURL ? <AvatarImage src={user.photoURL} alt="User Avatar" /> : userAvatar && <AvatarImage src={userAvatar.imageUrl} alt="User Avatar" />}
+                  <AvatarFallback>{user?.email?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="text-sm font-medium text-sidebar-foreground">John Doe</p>
+                  <p className="text-sm font-medium text-sidebar-foreground">{user?.displayName || user?.email || 'Guest User'}</p>
                   <p className="text-xs text-sidebar-foreground/70">Beginner</p>
                 </div>
               </div>
@@ -127,8 +152,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="icon" className="overflow-hidden rounded-full">
                 <Avatar className="h-8 w-8">
-                  {userAvatar && <AvatarImage src={userAvatar.imageUrl} alt="User Avatar" />}
-                  <AvatarFallback>U</AvatarFallback>
+                   {user?.photoURL ? <AvatarImage src={user.photoURL} alt="User Avatar" /> : userAvatar && <AvatarImage src={userAvatar.imageUrl} alt="User Avatar" />}
+                  <AvatarFallback>{user?.email?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
@@ -139,8 +164,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <Link href="/profile" className='w-full flex items-center'><Settings className="mr-2 h-4 w-4" />Settings</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                 <Link href="/" className='w-full flex items-center'><LogOut className="mr-2 h-4 w-4" />Logout</Link>
+              <DropdownMenuItem onClick={handleLogout}>
+                 <div className='w-full flex items-center'><LogOut className="mr-2 h-4 w-4" />Logout</div>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
