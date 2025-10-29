@@ -14,17 +14,23 @@ export default function WakeUpVerification() {
   const [isUploading, setIsUploading] = useState(false);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { toast } = useToast();
   const natureImage = PlaceHolderImages.find((img) => img.id === 'wake-up-nature');
+  
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
+    let stream: MediaStream;
     const getCameraPermission = async () => {
-      if (hasCameraPermission === null) {
+      if (hasCameraPermission === null && !isVerified) {
          try {
-          const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+          stream = await navigator.mediaDevices.getUserMedia({ video: true });
           setHasCameraPermission(true);
 
           if (videoRef.current) {
@@ -42,9 +48,7 @@ export default function WakeUpVerification() {
       }
     };
 
-    if (!isVerified) {
-        getCameraPermission();
-    }
+    getCameraPermission();
    
     return () => {
       // Cleanup: stop camera stream when component unmounts or is verified
@@ -149,12 +153,12 @@ export default function WakeUpVerification() {
               <Image src={capturedImage} alt="Captured snap" fill className="object-cover" />
             ) : (
                <>
-                 <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+                 {isClient && <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />}
                  {hasCameraPermission === false && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white p-4">
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white p-4 text-center">
                         <Camera className="h-10 w-10 mb-2" />
                         <p className="font-semibold">Camera Access Needed</p>
-                        <p className="text-xs text-center">Please allow camera access in your browser to continue.</p>
+                        <p className="text-xs">Please allow camera access in your browser to continue.</p>
                     </div>
                  )}
                </>

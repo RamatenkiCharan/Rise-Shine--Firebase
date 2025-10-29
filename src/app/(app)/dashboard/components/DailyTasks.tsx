@@ -22,11 +22,13 @@ const initialTasks: Task[] = [
 function TaskVerificationCamera({ onCapture, task, snapType }: { onCapture: (taskId: string, snapType: 'beforeSnap' | 'afterSnap', dataUrl: string) => void; task: Task; snapType: 'beforeSnap' | 'afterSnap' }) {
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
+    setIsClient(true);
     const getCameraPermission = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -87,11 +89,12 @@ function TaskVerificationCamera({ onCapture, task, snapType }: { onCapture: (tas
           <Image src={capturedImage} alt="Captured snap" fill className="object-cover" />
         ) : (
           <>
-            <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+            {isClient && <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />}
             {hasCameraPermission === false && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white p-4">
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white p-4 text-center">
                 <Camera className="h-10 w-10 mb-2" />
                 <p className="font-semibold">Camera Access Needed</p>
+                <p className="text-xs">Please allow camera access.</p>
               </div>
             )}
           </>
@@ -102,7 +105,7 @@ function TaskVerificationCamera({ onCapture, task, snapType }: { onCapture: (tas
         <Alert variant="destructive">
           <AlertTitle>Camera Access Required</AlertTitle>
           <AlertDescription>
-            Please allow camera access to use this feature.
+            Please allow camera access in your browser settings to use this feature.
           </AlertDescription>
         </Alert>
       )}
